@@ -1,0 +1,12 @@
+.pytest_cache/
+__pycache__/
+matcher/__pycache__/
+tests/__pycache__/
+
+# local excel inputs/outputs (do not commit)
+input/*.xlsx
+output/*.xlsx
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
