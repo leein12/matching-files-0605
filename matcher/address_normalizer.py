@@ -63,6 +63,7 @@ class AddressNormalized:
     normalized_text: str
     sido: str
     sigungu: str
+    region_key: str
     eupmyeondong: str
     road_name: str
     main_no: str
@@ -210,6 +211,13 @@ def _extract_eupmyeondong(text: str) -> str:
     return filtered[-1] if filtered else ""
 
 
+def build_region_key(sido: str, sigungu: str) -> str:
+    """후보군 인덱싱용 지역 키를 생성한다."""
+    if not sido or not sigungu:
+        return ""
+    return f"{sido}|{sigungu}"
+
+
 def normalize_address(value: Any) -> AddressNormalized:
     """주소를 정규화하고 비교용 필드를 추출한다."""
     original = "" if value is None else str(value).strip()
@@ -222,6 +230,7 @@ def normalize_address(value: Any) -> AddressNormalized:
     sido, working = _normalize_sido(detail_removed)
     sigungu = _extract_sigungu(working, sido)
     sido, sigungu = _apply_admin_alias(sido, sigungu)
+    region_key = build_region_key(sido, sigungu)
     eupmyeondong = _extract_eupmyeondong(working)
 
     road_name, main_no, sub_no, flags = _parse_road_and_number(working)
@@ -241,6 +250,7 @@ def normalize_address(value: Any) -> AddressNormalized:
         normalized_text=normalized_text,
         sido=sido,
         sigungu=sigungu,
+        region_key=region_key,
         eupmyeondong=eupmyeondong,
         road_name=road_name,
         main_no=main_no,

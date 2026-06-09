@@ -83,6 +83,35 @@ def test_low_score_candidates_excluded():
     assert len(candidates) == 0
 
 
+def test_candidate_index_uses_region_key_not_sigungu_only():
+    df_a = pd.DataFrame([{
+        "거래처키": "A001",
+        "거래처명": "옥천병원",
+        "거래처주소": "부산광역시 서구 옥천로 10",
+        "전화번호": "051-111-2222",
+    }])
+    df_b = pd.DataFrame([
+        {
+            "거래처키": "B001",
+            "거래처명": "광주옥천병원",
+            "거래처주소": "광주광역시 서구 옥천로 10",
+            "전화번호": "062-111-2222",
+        },
+        {
+            "거래처키": "B002",
+            "거래처명": "옥천병원",
+            "거래처주소": "부산광역시 서구 옥천로 10",
+            "전화번호": "051-111-2222",
+        },
+    ])
+
+    b_index = build_b_index(df_b)
+    assert set(b_index.by_region) == {"광주|서구", "부산|서구"}
+
+    candidates = find_candidates_for_row(df_a.iloc[0], b_index)
+    assert [c.b_row["거래처키"] for c in candidates] == ["B002"]
+
+
 @pytest.fixture
 def sample_dataframes():
     df_a = pd.DataFrame([

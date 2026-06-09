@@ -8,6 +8,13 @@ def test_sido_seoul():
     assert result.sido == "서울"
 
 
+def test_region_key_combines_sido_and_sigungu():
+    result = normalize_address("부산광역시 서구 옥천로 10")
+    assert result.sido == "부산"
+    assert result.sigungu == "서구"
+    assert result.region_key == "부산|서구"
+
+
 def test_sido_jeonbuk():
     result = normalize_address("전북특별자치도 전주시 덕진구 오동 100")
     assert result.sido == "전북"

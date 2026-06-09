@@ -40,7 +40,7 @@ class BIndex:
     """B 후보군 인덱스."""
 
     records: list[BRecord]
-    by_sigungu: dict[str, list[int]]
+    by_region: dict[str, list[int]]
     by_sido: dict[str, list[int]]
     by_name_prefix: dict[str, list[int]]
 
@@ -55,7 +55,7 @@ def _safe_str(value: Any) -> str:
 def build_b_index(df_b: pd.DataFrame) -> BIndex:
     """B 데이터를 정규화하고 인덱스를 구축한다."""
     records: list[BRecord] = []
-    by_sigungu: dict[str, list[int]] = {}
+    by_region: dict[str, list[int]] = {}
     by_sido: dict[str, list[int]] = {}
     by_name_prefix: dict[str, list[int]] = {}
 
@@ -68,8 +68,8 @@ def build_b_index(df_b: pd.DataFrame) -> BIndex:
         records.append(rec)
         pos = len(records) - 1
 
-        if address.sigungu:
-            by_sigungu.setdefault(address.sigungu, []).append(pos)
+        if address.region_key:
+            by_region.setdefault(address.region_key, []).append(pos)
         if address.sido:
             by_sido.setdefault(address.sido, []).append(pos)
 
@@ -79,7 +79,7 @@ def build_b_index(df_b: pd.DataFrame) -> BIndex:
 
     return BIndex(
         records=records,
-        by_sigungu=by_sigungu,
+        by_region=by_region,
         by_sido=by_sido,
         by_name_prefix=by_name_prefix,
     )
@@ -110,9 +110,9 @@ def _collect_indices(
                 seen.add(pos)
                 result.append(pos)
 
-    # 1. 동일 시군구
-    if a_addr.sigungu:
-        add_from(b_index.by_sigungu, a_addr.sigungu)
+    # 1. 동일 시도+시군구
+    if a_addr.region_key:
+        add_from(b_index.by_region, a_addr.region_key)
 
     # 2. 동일 시도
     if not result and a_addr.sido:
