@@ -2,10 +2,13 @@
 __pycache__/
 matcher/__pycache__/
 tests/__pycache__/
+build/
 
 # local excel inputs/outputs (do not commit)
 input/*.xlsx
 output/*.xlsx
+release/**/input/*.xlsx
+release/**/output/*.xlsx
 
 # OS/editor noise
 .DS_Store
