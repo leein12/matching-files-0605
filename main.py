@@ -6,8 +6,22 @@ import sys
 from pathlib import Path
 
 import config
-from matcher.excel_io import build_result_dataframe, read_input_excel, save_result_excel
+import pandas as pd
+from matcher.customer_exact_matcher import (
+    build_customer_exact_result_dataframe,
+    has_customer_columns,
+)
+from matcher.excel_io import (
+    build_result_dataframe,
+    read_input_excel,
+    save_result_excel,
+    validate_columns,
+)
 from runtime_config import load_external_config
+
+MATCH_MODE_AUTO = "auto"
+MATCH_MODE_CUSTOMER_EXACT = "customer_exact"
+MATCH_MODE_COMPANY_SIMILARITY = "company_similarity"
 
 
 def _get_base_dir() -> Path:
@@ -24,6 +38,48 @@ def _pause_if_needed() -> None:
             input("\n종료하려면 Enter 키를 누르세요...")
         except EOFError:
             pass
+
+
+def _determine_match_mode(df_a: pd.DataFrame, df_b: pd.DataFrame) -> str:
+    """설정과 입력 컬럼을 기준으로 실행 모드를 결정한다."""
+    mode = config.MATCH_MODE.strip().lower()
+    valid_modes = {
+        MATCH_MODE_AUTO,
+        MATCH_MODE_CUSTOMER_EXACT,
+        MATCH_MODE_COMPANY_SIMILARITY,
+    }
+    if mode not in valid_modes:
+        raise ValueError(
+            "config.ini의 matching.mode 값이 올바르지 않습니다. "
+            "auto, customer_exact, company_similarity 중 하나를 사용해 주세요."
+        )
+
+    if mode == MATCH_MODE_AUTO:
+        if has_customer_columns(df_a, df_b):
+            return MATCH_MODE_CUSTOMER_EXACT
+        return MATCH_MODE_COMPANY_SIMILARITY
+
+    return mode
+
+
+def _build_result_by_mode(
+    df_a: pd.DataFrame,
+    df_b: pd.DataFrame,
+    a_filename: str,
+    b_filename: str,
+) -> pd.DataFrame:
+    """결정된 모드에 맞게 결과 DataFrame을 만든다."""
+    mode = _determine_match_mode(df_a, df_b)
+    print(f"[INFO] Selected match mode: {mode}")
+
+    if mode == MATCH_MODE_CUSTOMER_EXACT:
+        validate_columns(df_a, a_filename, config.REQUIRED_CUSTOMER_COLUMNS)
+        validate_columns(df_b, b_filename, config.REQUIRED_CUSTOMER_COLUMNS)
+        return build_customer_exact_result_dataframe(df_a, df_b)
+
+    validate_columns(df_a, a_filename, config.REQUIRED_COLUMNS)
+    validate_columns(df_b, b_filename, config.REQUIRED_COLUMNS)
+    return build_result_dataframe(df_a, df_b)
 
 
 def run() -> int:
@@ -59,7 +115,7 @@ def run() -> int:
         print(f"[INFO] Reading {b_path.name}...")
         df_b = read_input_excel(b_path)
 
-        result_df = build_result_dataframe(df_a, df_b)
+        result_df = _build_result_by_mode(df_a, df_b, a_path.name, b_path.name)
 
         print(f"[INFO] Saving result to {output_path}...")
         save_result_excel(result_df, output_path)

@@ -131,9 +131,6 @@ def _collect_indices(
                 seen.add(pos)
                 result.append(pos)
 
-    if len(result) > config.MAX_FALLBACK_CANDIDATES:
-        result = result[: config.MAX_FALLBACK_CANDIDATES]
-
     return result
 
 

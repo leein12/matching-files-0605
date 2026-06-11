@@ -24,6 +24,24 @@ def test_admin_alias_incheon_namgu():
     result = normalize_address("인천광역시 남구 경원대로 100")
     assert result.sido == "인천"
     assert result.sigungu == "미추홀구"
+    assert result.region_key == "인천|미추홀구"
+
+
+def test_admin_alias_incheon_namgu_equals_michuholgu():
+    old_addr = normalize_address("인천 남구 경원대로 100")
+    new_addr = normalize_address("인천광역시 미추홀구 경원대로 100")
+    assert old_addr.sido == new_addr.sido == "인천"
+    assert old_addr.sigungu == new_addr.sigungu == "미추홀구"
+    assert old_addr.region_key == new_addr.region_key == "인천|미추홀구"
+
+
+def test_admin_alias_gunwi_moves_from_gyeongbuk_to_daegu():
+    old_addr = normalize_address("경상북도 군위군 군위읍 중앙길 10")
+    old_short_addr = normalize_address("경북 군위군 군위읍 중앙길 10")
+    new_addr = normalize_address("대구광역시 군위군 군위읍 중앙길 10")
+    assert old_addr.sido == old_short_addr.sido == new_addr.sido == "대구"
+    assert old_addr.sigungu == old_short_addr.sigungu == new_addr.sigungu == "군위군"
+    assert old_addr.region_key == old_short_addr.region_key == new_addr.region_key == "대구|군위군"
 
 
 def test_parentheses_removed():
